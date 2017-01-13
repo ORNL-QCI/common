@@ -15,10 +15,12 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/tpls/fire)
 endif() 
 
 find_package(MPI REQUIRED)
-find_package(Boost COMPONENTS system REQUIRED)
 
-message(STATUS "Found Boost Headers = ${Boost_INCLUDE_DIRS}")
-message(STATUS "Found Boost Libraries = ${Boost_LIBRARIES}")
+if(NOT Boost_FOUND)
+  find_package(Boost COMPONENTS system REQUIRED)
+  message(STATUS "Found Boost Headers = ${Boost_INCLUDE_DIRS}")
+  message(STATUS "Found Boost Libraries = ${Boost_LIBRARIES}")
+endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -29,6 +31,7 @@ include_directories(${MPI_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories("${CMAKE_SOURCE_DIR}/factory")
 include_directories("${CMAKE_SOURCE_DIR}/graph")
+include_directories("${CMAKE_SOURCE_DIR}/exception")
 
 set (PACKAGE_NAME "QCI-Utils")
 set (PACKAGE_DESCRIPTION "ORNL QCI Common Utilities")
