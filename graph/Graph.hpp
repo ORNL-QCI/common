@@ -73,6 +73,7 @@ struct DefaultEdge {
  */
 template<typename Vertex>
 class Graph {
+	static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
 
 	using adj_list = adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>;
 	using BoostGraph = std::shared_ptr<adj_list>;
@@ -86,12 +87,10 @@ protected:
 public:
 
 	Graph() {
-		static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
 		_graph = std::make_shared<adj_list>();
 	}
 
 	Graph(const int numberOfVertices) {
-		static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
 		_graph = std::make_shared<adj_list>(
 				numberOfVertices);
 	}
