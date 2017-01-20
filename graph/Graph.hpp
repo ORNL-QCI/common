@@ -148,7 +148,7 @@ public:
 		(*_graph.get())[e.first].weight = weight;
 	}
 
-	const double getEdgeWeight(const int srcIndex, const int tgtIndex) {
+	double getEdgeWeight(const int srcIndex, const int tgtIndex) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		return (*_graph.get())[e.first].weight;
 	}
@@ -187,11 +187,11 @@ public:
 		return all_eccentricities(*_graph.get(), dm, em).second;
 	}
 
-	const int size() {
+	int size() {
 		return num_edges(*_graph.get());
 	}
 
-	const int order() {
+	int order() {
 		return num_vertices(*_graph.get());
 	}
 };
