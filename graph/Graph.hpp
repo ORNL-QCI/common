@@ -145,7 +145,7 @@ public:
 		(*_graph.get())[e.first].weight = weight;
 	}
 
-	const double getEdgeWeight(const int srcIndex, const int tgtIndex) {
+	double getEdgeWeight(const int srcIndex, const int tgtIndex) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		return (*_graph.get())[e.first].weight;
 	}
@@ -155,11 +155,11 @@ public:
 				vertex(tgtIndex, *_graph.get()), *_graph.get()).second;
 	}
 
-	const int degree(const int index) {
+	int degree(const int index) {
 		return degree(vertex(index, *_graph.get()), *_graph.get());
 	}
 
-	const int diameter() {
+	int diameter() {
 		// Get vertex 0 in the graph
 		auto start = vertex(0, *_graph.get());
 //		// Get the vertex distance map
@@ -191,13 +191,14 @@ public:
 //				std::max_element(distancesForProc.begin(),
 //						distancesForProc.end()))];
 //		return max;
+return 0;
 	}
 
-	const int size() {
+	int size() {
 		return num_edges(*_graph.get());
 	}
 
-	const int order() {
+	int order() {
 		return num_vertices(*_graph.get());
 	}
 };
