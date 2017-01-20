@@ -28,12 +28,12 @@ public:
 
 #define QCI_Abort do {std::abort();} while(0);
 
-#define QCIError(errorMsg)                          \
-		do {                                        \
-			std::ostringstream stream;              \
-			stream << "\n\n QCI Error caught! \n\n" \
-                   << errorMsg << "\n\n";           \
-            throw QCIException(stream.str());       \
+#define QCIError(errorMsg)									\
+		do {												\
+			std::ostringstream stream;						\
+			stream << "\n\n QCI Error caught! \n\n"			\
+                   << errorMsg << "\n\n";					\
+            throw qci::common::QCIException(stream.str());	\
 		} while (0);
 
 }
