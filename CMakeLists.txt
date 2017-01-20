@@ -6,6 +6,8 @@ set(CMAKE_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 11)
 message(STATUS "C++ version ${CXX_STANDARD} configured.")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-long-long -pedantic -Wno-unused-function")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/tpls/fire)
@@ -43,4 +45,3 @@ file (GLOB test_files factory/tests/*.cpp graph/tests/*.cpp)
 add_tests("${test_files}" "${CMAKE_CURRENT_SOURCE_DIR}" "")
   
 install (FILES ${HEADERS} DESTINATION include)
-
