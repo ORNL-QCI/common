@@ -89,4 +89,39 @@ BOOST_AUTO_TEST_CASE(checkConstruction) {
 	BOOST_VERIFY(33.3 == graph.getVertexProperty<0>(1));
 }
 
+BOOST_AUTO_TEST_CASE(checkEdgeExists) {
+	// Create a 2 node graph
+	Graph<FakeBiasVertex> graph(3);
 
+	// Verify it's size
+	BOOST_REQUIRE_EQUAL(3, graph.order());
+
+	graph.addEdge(0, 1, 2.0);
+	graph.addEdge(1, 2, 3.0);
+	graph.addEdge(2, 0, 1.0);
+
+	BOOST_REQUIRE_EQUAL(3, graph.size());
+
+	BOOST_VERIFY(graph.edgeExists(0,1));
+	BOOST_VERIFY(graph.edgeExists(1,0));
+	BOOST_VERIFY(graph.edgeExists(1,2));
+	BOOST_VERIFY(graph.edgeExists(2,1));
+	BOOST_VERIFY(graph.edgeExists(2,0));
+	BOOST_VERIFY(graph.edgeExists(0,2));
+}
+
+BOOST_AUTO_TEST_CASE(checkDiameter) {
+	// Create a Complete 5 node graph
+	Graph<FakeBiasVertex> complete5(5);
+	complete5.addEdge(0, 1);
+	complete5.addEdge(0, 2);
+	complete5.addEdge(0, 3);
+	complete5.addEdge(0, 4);
+	complete5.addEdge(1, 2);
+	complete5.addEdge(1, 3);
+	complete5.addEdge(1, 4);
+	complete5.addEdge(2, 3);
+	complete5.addEdge(2, 4);
+	complete5.addEdge(3, 4);
+//	BOOST_REQUIRE_EQUAL(1, complete5.diameter());
+}

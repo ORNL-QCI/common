@@ -39,6 +39,10 @@ using namespace boost;
 namespace qci {
 namespace common {
 
+/**
+ * Utility structs to help determine if
+ * we have been given valid Vertices.
+ */
 template<typename T, typename = void>
 struct is_valid_vertex: std::false_type {
 };
@@ -46,12 +50,20 @@ template<typename T>
 struct is_valid_vertex<T, decltype(std::declval<T>().properties, void())> : std::true_type {
 };
 
+/**
+ * The base class of all QCI Vertices for the
+ * QCI Common Graph class. All Vertices must keep
+ * track of a set of properties, stored as a tuple.
+ */
 template<typename ... Properties>
 class QCIVertex {
 public:
 	std::tuple<Properties...> properties;
 };
 
+/**
+ * For now, we only allow Edges with weight property.
+ */
 struct DefaultEdge {
 	double weight = 0.0;
 };
@@ -62,7 +74,8 @@ struct DefaultEdge {
 template<typename Vertex>
 class Graph {
 
-	using BoostGraph = std::shared_ptr<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>;
+	using adj_list = adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>;
+	using BoostGraph = std::shared_ptr<adj_list>;
 	using vertex_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::vertex_descriptor;
 	using edge_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::edge_descriptor;
 
@@ -74,14 +87,12 @@ public:
 
 	Graph() {
 		static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
-		_graph = std::make_shared<
-				adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>();
+		_graph = std::make_shared<adj_list>();
 	}
 
 	Graph(const int numberOfVertices) {
 		static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
-		_graph = std::make_shared<
-				adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>(
+		_graph = std::make_shared<adj_list>(
 				numberOfVertices);
 	}
 
@@ -138,6 +149,49 @@ public:
 	const double getEdgeWeight(const int srcIndex, const int tgtIndex) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		return (*_graph.get())[e.first].weight;
+	}
+
+	bool edgeExists(const int srcIndex, const int tgtIndex) {
+		return edge(vertex(srcIndex, *_graph.get()),
+				vertex(tgtIndex, *_graph.get()), *_graph.get()).second;
+	}
+
+	const int degree(const int index) {
+		return degree(vertex(index, *_graph.get()), *_graph.get());
+	}
+
+	const int diameter() {
+		// Get vertex 0 in the graph
+		auto start = vertex(0, *_graph.get());
+//		// Get the vertex distance map
+//		auto distance = get(vertex_distance, *_graph.get());
+//
+//		// Initialize distances to infinity and set reduction operation to 'min'
+//		using vertex_iter = typename graph_traits<adj_list>::vertex_iterator;
+//		for (auto vp = vertices(*_graph.get()); vp.first != vp.second; ++vp.first) {
+//			put(distance, vp.first, (std::numeric_limits<double>::max)());
+//		}
+//		// Initialize the first vertex to 0 distance
+//		put(distance, start, 0);
+//		// Perform distributed breadth first search
+//		dijkstra_shortest_paths(*_graph.get(), start,
+//				distance_map(distance).lookahead(1.0));
+//		// Get the maximum distance over all vertices in parallel
+//		double overallMax = 0;
+//		std::vector<double> distancesForProc, allMaxes;
+//		for (int v = 0; v < size(); v++) {
+//			if (degree(v) > 0) {
+//				distancesForProc.push_back((double) get(distance, v));
+//			} else {
+//				distancesForProc.push_back(0);
+//			}
+//		}
+//		// Get the max distance for this proc
+//		double max = distancesForProc[std::distance(
+//				distancesForProc.begin(),
+//				std::max_element(distancesForProc.begin(),
+//						distancesForProc.end()))];
+//		return max;
 	}
 
 	const int size() {
