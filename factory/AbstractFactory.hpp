@@ -169,8 +169,7 @@ private:
 						boost::assign::map_list_of("unknown",unknown)("compiler", compiler)(
 								"accelerator", accelerator)("qpu", qpu)("npu", npu);
 			if (tmpMap[type] == triggerFailure) {
-				QCIError("\n" << type
-						<< " is not a valid QCI Type "
+				QCIError(type + " is not a valid QCI Type "
 								"(must be 'compiler', 'accelerator', "
 								"'qpu', 'npu'). Exiting.\n\n");
 			}
