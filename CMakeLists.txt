@@ -35,15 +35,12 @@ include_directories("${CMAKE_SOURCE_DIR}/exception")
 
 set (PACKAGE_NAME "QCI-Utils")
 set (PACKAGE_DESCRIPTION "ORNL QCI Common Utilities")
-#set (LIBRARY_NAME qci-utils)
 
 file (GLOB_RECURSE HEADERS *.hpp)
-#file (GLOB SRC factory/*.cpp graph/*.cpp) not used yet
-file (GLOB test_files factory/tests/*.cpp)
+file (GLOB test_files factory/tests/*.cpp graph/tests/*.cpp)
 
-#add_library(${LIBRARY_NAME} SHARED ${SRC})
 
-add_tests("${test_files}" "${CMAKE_CURRENT_SOURCE_DIR}" "${LIBRARY_NAME}")
+add_tests("${test_files}" "${CMAKE_CURRENT_SOURCE_DIR}" "")
   
 install (FILES ${HEADERS} DESTINATION include)
 

@@ -28,14 +28,65 @@
  *   Initial API and implementation - Alex McCaskey
  *
  **********************************************************************************/
-#ifndef XACC_UTILS_IGRAPH_HPP_
-#define XACC_UTILS_IGRAPH_HPP_
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE GraphTests
 
-#include "AbstractFactory.hpp"
+#include <boost/test/included/unit_test.hpp>
+#include "Graph.hpp"
 
-template <typename T>
-class IGraph : public xacc::XACCObject {
+using namespace boost;
+using namespace qci::common;
+
+class BadVertex {
 
 };
 
-#endif
+class FakeTensorVertex : public QCIVertex<std::string> {
+};
+
+class FakeBiasVertex : public QCIVertex<double> {
+};
+
+BOOST_AUTO_TEST_CASE(checkConstruction) {
+
+	// Check our valid vertex functions...
+	BOOST_VERIFY(!is_valid_vertex<BadVertex>::value);
+	BOOST_VERIFY(is_valid_vertex<FakeTensorVertex>::value);
+
+	// Create a blank Graph with good vertices
+	Graph<FakeTensorVertex> g1;
+	g1.addVertex();
+	BOOST_VERIFY(g1.order() == 1);
+
+	// Create with 5 vertices
+	Graph<FakeTensorVertex> g2(5);
+	BOOST_VERIFY(g2.order() == 5);
+
+	// Create a 3 node graph
+	Graph<FakeBiasVertex> graph(3);
+
+	// Verify it's size
+	BOOST_VERIFY(3 == graph.order());
+
+	// Create a complete graph with
+	// the given edge weights.
+	graph.addEdge(0, 1, 2.0);
+	graph.addEdge(1, 2, 3.0);
+	graph.addEdge(2, 0, 1.0);
+
+	BOOST_VERIFY(2.0 == graph.getEdgeWeight(0, 1));
+
+	// Test that we can change a weight
+	graph.setEdgeWeight(0, 1, 22.0);
+	BOOST_VERIFY(22.0 == graph.getEdgeWeight(0, 1));
+
+	// Verify that we can set vertex bias values
+	BOOST_VERIFY(0.0 == graph.getVertexProperty<0>(0));
+	BOOST_VERIFY(0.0 == graph.getVertexProperty<0>(1));
+	graph.setVertexProperty<0>(0, 3.3);
+	BOOST_VERIFY(3.3 == graph.getVertexProperty<0>(0));
+	graph.setVertexProperty<0>(1, 33.3);
+	BOOST_VERIFY(33.3 == graph.getVertexProperty<0>(1));
+}
+
+
