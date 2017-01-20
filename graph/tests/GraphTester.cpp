@@ -110,6 +110,24 @@ BOOST_AUTO_TEST_CASE(checkEdgeExists) {
 	BOOST_VERIFY(graph.edgeExists(0,2));
 }
 
+BOOST_AUTO_TEST_CASE(checkDegree) {
+	Graph<FakeBiasVertex> complete5(5);
+	complete5.addEdge(0, 1);
+	complete5.addEdge(0, 2);
+	complete5.addEdge(0, 3);
+	complete5.addEdge(0, 4);
+	complete5.addEdge(1, 2);
+	complete5.addEdge(1, 3);
+	complete5.addEdge(1, 4);
+	complete5.addEdge(2, 3);
+	complete5.addEdge(2, 4);
+	complete5.addEdge(3, 4);
+
+	for (int i = 0; i < 5; i++) {
+		BOOST_VERIFY(4 == complete5.degree(i));
+	}
+}
+
 BOOST_AUTO_TEST_CASE(checkDiameter) {
 	// Create a Complete 5 node graph
 	Graph<FakeBiasVertex> complete5(5);
@@ -123,5 +141,5 @@ BOOST_AUTO_TEST_CASE(checkDiameter) {
 	complete5.addEdge(2, 3);
 	complete5.addEdge(2, 4);
 	complete5.addEdge(3, 4);
-//	BOOST_REQUIRE_EQUAL(1, complete5.diameter());
+	BOOST_REQUIRE_EQUAL(1, complete5.diameter());
 }

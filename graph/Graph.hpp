@@ -33,6 +33,9 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <type_traits>
+#include <boost/graph/exterior_property.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/graph/eccentricity.hpp>
 
 using namespace boost;
 
@@ -155,42 +158,33 @@ public:
 				vertex(tgtIndex, *_graph.get()), *_graph.get()).second;
 	}
 
-	const int degree(const int index) {
-		return degree(vertex(index, *_graph.get()), *_graph.get());
+	int degree(const int index) {
+		return boost::degree(vertex(index, *_graph.get()), *_graph.get());
 	}
 
-	const int diameter() {
-		// Get vertex 0 in the graph
-		auto start = vertex(0, *_graph.get());
-//		// Get the vertex distance map
-//		auto distance = get(vertex_distance, *_graph.get());
-//
-//		// Initialize distances to infinity and set reduction operation to 'min'
-//		using vertex_iter = typename graph_traits<adj_list>::vertex_iterator;
-//		for (auto vp = vertices(*_graph.get()); vp.first != vp.second; ++vp.first) {
-//			put(distance, vp.first, (std::numeric_limits<double>::max)());
-//		}
-//		// Initialize the first vertex to 0 distance
-//		put(distance, start, 0);
-//		// Perform distributed breadth first search
-//		dijkstra_shortest_paths(*_graph.get(), start,
-//				distance_map(distance).lookahead(1.0));
-//		// Get the maximum distance over all vertices in parallel
-//		double overallMax = 0;
-//		std::vector<double> distancesForProc, allMaxes;
-//		for (int v = 0; v < size(); v++) {
-//			if (degree(v) > 0) {
-//				distancesForProc.push_back((double) get(distance, v));
-//			} else {
-//				distancesForProc.push_back(0);
-//			}
-//		}
-//		// Get the max distance for this proc
-//		double max = distancesForProc[std::distance(
-//				distancesForProc.begin(),
-//				std::max_element(distancesForProc.begin(),
-//						distancesForProc.end()))];
-//		return max;
+	int diameter() {
+		// Set some aliases we'll need
+		using DistanceProperty = boost::exterior_vertex_property<adj_list, int>;
+		using DistanceMatrix = typename DistanceProperty::matrix_type;
+		using DistanceMatrixMap = typename DistanceProperty::matrix_map_type;
+		using EccentricityProperty = boost::exterior_vertex_property<adj_list, int>;
+		using EccentricityContainer = typename EccentricityProperty::container_type;
+		using EccentricityMap = typename EccentricityProperty::map_type;
+
+		// Construct the distance mapping
+		DistanceMatrix distances(order());
+		DistanceMatrixMap dm(distances, *_graph.get());
+		constant_property_map<edge_type, int> wm(1);
+
+		// Compute the shortest paths
+		floyd_warshall_all_pairs_shortest_paths(*_graph.get(), dm, weight_map(wm));
+
+		// Now get diameter information
+		EccentricityContainer eccs(order());
+		EccentricityMap em(eccs, *_graph.get());
+
+		// Return the diameter
+		return all_eccentricities(*_graph.get(), dm, em).second;
 	}
 
 	const int size() {
