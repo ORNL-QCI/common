@@ -36,6 +36,7 @@
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/eccentricity.hpp>
+#include "QCIError.hpp"
 
 using namespace boost;
 
@@ -72,12 +73,24 @@ struct DefaultEdge {
 };
 
 /**
+ * The Graph class provides a generic data structure modeling
+ * mathematical graph structures. It is templated on the vertex
+ * type, allowing for graphs with a wide variety of graph nodes
+ * (for example, in quantum computing - graph of tensors, graph of
+ * Ising parameters, etc.)
  *
+ * All provided Vertex types must be a subclass of the
+ * QCIVertex in order to properly provide a tuple of vertex
+ * properties.
+ * s
  */
 template<typename Vertex>
 class Graph {
+
+	// Make sure we've been given a valid Vertex
 	static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
 
+	// Setup some easy to use aliases
 	using adj_list = adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>;
 	using BoostGraph = std::shared_ptr<adj_list>;
 	using vertex_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::vertex_descriptor;
@@ -85,48 +98,97 @@ class Graph {
 
 protected:
 
+	/**
+	 * The actual graph data structure we are
+	 * delegating to.
+	 */
 	BoostGraph _graph;
 
 public:
 
+	/**
+	 * The nullary constructor
+	 */
 	Graph() {
 		_graph = std::make_shared<adj_list>();
 	}
 
+	/**
+	 * The constructor, constructs a graph with
+	 * specified number of vertices.
+	 *
+	 * @param numberOfVertices The number of vertices
+	 */
 	Graph(const int numberOfVertices) {
 		_graph = std::make_shared<adj_list>(
 				numberOfVertices);
 	}
 
-	void addEdge(const int srcIndex, const int tgtIndex, const double edgeProperty) {
+	/**
+	 * Add an edge between the vertices with given provided
+	 * indices and edge weight.
+	 *
+	 * @param srcIndex Index of the starting vertex
+	 * @param tgtIndex Index of the ending vertex
+	 * @param edgeWeight The edge weight
+	 */
+	void addEdge(const int srcIndex, const int tgtIndex, const double edgeWeight) {
 		auto edgeBoolPair = add_edge(vertex(srcIndex, *_graph.get()),
 				vertex(tgtIndex, *_graph.get()), *_graph.get());
 		if (!edgeBoolPair.second) {
 
 		}
-		(*_graph.get())[edgeBoolPair.first].weight = edgeProperty;
+		(*_graph.get())[edgeBoolPair.first].weight = edgeWeight;
 	}
 
+	/**
+	 * Add an edge with default edge weight between the
+	 * vertices at the provided indices.
+	 *
+	 * @param srcIndex Index of the starting vertex
+	 * @param tgtIndex Index of the ending vertex
+	 */
 	void addEdge(const int srcIndex, const int tgtIndex) {
 		add_edge(vertex(srcIndex, *_graph.get()),
 				vertex(tgtIndex, *_graph.get()), *_graph.get());
 	}
 
+	/**
+	 * Add a vertex to this Graph.
+	 */
 	void addVertex() {
 		add_vertex(*_graph.get());
 	}
 
+	/**
+	 * Add a vertex to this graph with the provided properties.
+	 * s
+	 * @param properties
+	 */
 	template<typename ... Properties>
 	void addVertex(Properties ... properties) {
 		auto v = add_vertex(*_graph.get());
 		(*_graph.get())[v].properties = std::make_tuple(properties...);
 	}
 
+	/**
+	 * Set an existing vertices properties.
+	 *
+	 * @param index The index of the vertex
+	 * @param properties The new properties for the vertex
+	 */
 	template<typename... Properties>
 	void setVertexProperties(const int index, Properties... properties) {
-
+		auto v = vertex(index, *_graph.get());
+		(*_graph.get())[v].properties = std::make_tuple(properties...);
 	}
 
+	/**
+	 * Set a specific vertex property for the vertex at given index.
+	 *
+	 * @param index The index of the vertex
+	 * @param prop The property to set.
+	 */
 	template<const int PropertyIndex>
 	void setVertexProperty(const int index,
 			decltype(std::get<PropertyIndex>(std::declval<Vertex>().properties)) prop) {
@@ -135,6 +197,14 @@ public:
 		return;
 	}
 
+	/**
+	 * Return the vertex property of the vertex
+	 * at the given index and at the provided
+	 * valid vertex property template index.
+	 *
+	 * @param index The index of the vertex
+	 * @return property The property value.
+	 */
 	template<const int PropertyIndex>
 	decltype(std::get<PropertyIndex>(std::declval<Vertex>().properties))& getVertexProperty(
 			const int index) {
@@ -142,26 +212,60 @@ public:
 		return std::get<PropertyIndex>((*_graph.get())[v].properties);
 	}
 
-
+	/**
+	 * Set the weight on the edge between the vertices at the
+	 * provided indices.
+	 *
+	 * @param srcIndex The starting vertex index
+	 * @param tgtIndex The ending vertex index
+	 * @param weight The weight to set.
+	 */
 	void setEdgeWeight(const int srcIndex, const int tgtIndex, const double weight) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		(*_graph.get())[e.first].weight = weight;
 	}
 
+	/**
+	 * Return the edge weight at the edge between
+	 * the provided vertices.
+	 *
+	 * @param srcIndex The starting vertex index
+	 * @param tgtIndex The ending vertex index
+	 * @return The edge weight
+	 */
 	double getEdgeWeight(const int srcIndex, const int tgtIndex) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		return (*_graph.get())[e.first].weight;
 	}
 
+	/**
+	 * Return true if there is an edge between the
+	 * two vertices at the given vertex indices.
+	 *
+	 * @param srcIndex The starting vertex index
+	 * @param tgtIndex The ending vertex index
+	 * @return exists Boolean indicating if edge exists or not
+	 */
 	bool edgeExists(const int srcIndex, const int tgtIndex) {
 		return edge(vertex(srcIndex, *_graph.get()),
 				vertex(tgtIndex, *_graph.get()), *_graph.get()).second;
 	}
 
+	/**
+	 * Return the vertex degree at the given vertex index.
+	 *
+	 * @param index The index of the vertex
+	 * @return degree The degree of the vertex
+	 */
 	int degree(const int index) {
 		return boost::degree(vertex(index, *_graph.get()), *_graph.get());
 	}
 
+	/**
+	 * Return the diameter of this Graph.
+	 *
+	 * @return diameter The graph diameter
+	 */
 	int diameter() {
 		// Set some aliases we'll need
 		using DistanceProperty = boost::exterior_vertex_property<adj_list, int>;
@@ -187,10 +291,19 @@ public:
 		return all_eccentricities(*_graph.get(), dm, em).second;
 	}
 
+	/**
+	 * Return the number of edges.
+	 * @return nEdges The number of edges.
+	 */
 	int size() {
 		return num_edges(*_graph.get());
 	}
 
+	/**
+	 * Return the number of vertices in this graph
+	 *
+	 * @return nVerts The number of vertices.
+	 */
 	int order() {
 		return num_vertices(*_graph.get());
 	}

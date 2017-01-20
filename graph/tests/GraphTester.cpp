@@ -89,6 +89,12 @@ BOOST_AUTO_TEST_CASE(checkConstruction) {
 	BOOST_VERIFY(33.3 == graph.getVertexProperty<0>(1));
 }
 
+BOOST_AUTO_TEST_CASE(checkAddVertexWithProperties) {
+	Graph<FakeBiasVertex> graph;
+	graph.addVertex(22.2);
+	BOOST_VERIFY(graph.getVertexProperty<0>(0) == 22.2);
+}
+
 BOOST_AUTO_TEST_CASE(checkEdgeExists) {
 	// Create a 2 node graph
 	Graph<FakeBiasVertex> graph(3);
