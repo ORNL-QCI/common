@@ -129,6 +129,7 @@ public:
 		return std::get<PropertyIndex>((*_graph.get())[v].properties);
 	}
 
+
 	void setEdgeWeight(const int srcIndex, const int tgtIndex, const double weight) {
 		auto e = edge(vertex(srcIndex, *_graph.get()), vertex(tgtIndex, *_graph.get()), *_graph.get());
 		(*_graph.get())[e.first].weight = weight;
