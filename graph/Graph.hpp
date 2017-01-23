@@ -72,6 +72,10 @@ struct DefaultEdge {
 	double weight = 0.0;
 };
 
+enum GraphType {
+	Undirected, Directed
+};
+
 /**
  * The Graph class provides a generic data structure modeling
  * mathematical graph structures. It is templated on the vertex
@@ -84,14 +88,16 @@ struct DefaultEdge {
  * properties.
  * s
  */
-template<typename Vertex>
+template<typename Vertex, GraphType type = Undirected>
 class Graph {
 
 	// Make sure we've been given a valid Vertex
 	static_assert(is_valid_vertex<Vertex>::value, "QCI Graph can only take Vertices that are derived from QCIVertex, or have a tuple properties member.");
 
+	using graph_type = typename std::conditional<(type == GraphType::Undirected), undirectedS, directedS>::type;
+
 	// Setup some easy to use aliases
-	using adj_list = adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>;
+	using adj_list = adjacency_list<vecS, vecS, graph_type, Vertex, DefaultEdge>;
 	using BoostGraph = std::shared_ptr<adj_list>;
 	using vertex_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::vertex_descriptor;
 	using edge_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::edge_descriptor;
@@ -169,6 +175,11 @@ public:
 	void addVertex(Properties ... properties) {
 		auto v = add_vertex(*_graph.get());
 		(*_graph.get())[v].properties = std::make_tuple(properties...);
+	}
+
+	void addVertex(Vertex& vertex) {
+		auto v = add_vertex(*_graph.get());
+		(*_graph.get())[v].properties = vertex.properties;
 	}
 
 	/**
