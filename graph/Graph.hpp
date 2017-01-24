@@ -38,6 +38,7 @@
 #include <boost/graph/eccentricity.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/algorithm/string.hpp>
+#include <numeric>
 #include "QCIError.hpp"
 
 using namespace boost;
@@ -83,6 +84,17 @@ enum GraphType {
 	Undirected, Directed
 };
 
+// Overload stream operator for vector
+template<class T>
+std::ostream& operator << (std::ostream& os, const std::vector<T>& v) {
+	os << "[";
+	for (std::size_t i = 0; i < v.size(); i++) {
+		os << v[i] << (i == v.size() - 1 ? "" : " ");
+	}
+	os << "]";
+	return os;
+}
+
 template<std::size_t> struct int_{};
 
 template <class Tuple, size_t Pos>
@@ -98,9 +110,9 @@ std::ostream& print_tuple(std::ostream& out, const Tuple& t, int_<1> ) {
 
 template <class... Args>
 std::ostream& operator<<(std::ostream& out, const std::tuple<Args...>& t) {
-  out << std::string(" [");
+  out << std::string(" [label=\"");
   print_tuple(out, t, int_<sizeof...(Args)>());
-  return out << ']';
+  return out << "\"]";
 }
 
 /**
@@ -157,18 +169,22 @@ protected:
 
 			int counter = 0;
 			for (std::size_t i = 0; i < splitVec.size(); i++) {
-				auto s = splitVec[i];
-				if (i == 0) {
-					s.insert(1,graph[node].propertyNames[counter]+"=");
-				} else {
-					s.insert(0, graph[node].propertyNames[counter]+"=");
+				if (!graph[node].propertyNames[counter].empty()) {
+					auto s = splitVec[i];
+					if (i == 0) {
+						s.insert(8, graph[node].propertyNames[counter] + "=");
+					} else {
+						s.insert(0, graph[node].propertyNames[counter] + "=");
+					}
+					counter++;
+					result += s + ",";
 				}
-				counter++;
-				result += s + ",";
 			}
 
 			result = result.substr(0,result.size() - 1);
-
+			if (result.substr(result.size() - 2, result.size()) != "\"]") {
+				result += "\"]";
+			}
 			out << " " << result;
 		}
 	};
@@ -395,8 +411,20 @@ public:
 	 * @param stream
 	 */
 	void write(std::ostream& stream) {
+		std::stringstream ss;
 		QCIVertexPropertiesWriter writer(*_graph.get());
-		boost::write_graphviz(stream, *_graph.get(), writer);
+		boost::write_graphviz(ss, *_graph.get(), writer);
+		auto str = ss.str();
+		// Modify the style...
+		str = str.insert(9, "\n{\nnode [shape=box style=filled]");
+
+		std::vector<std::string> splitVec;
+		boost::split(splitVec, str, boost::is_any_of("\n"));
+		splitVec.insert(splitVec.begin() + 3 + order(), "}");
+
+		std::stringstream combine;
+		std::for_each(splitVec.begin(), splitVec.end(), [&](const std::string& elem) { combine << elem << "\n"; });
+		stream << combine.str().substr(0, combine.str().size() - 2);
 	}
 };
 

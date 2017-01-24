@@ -61,6 +61,20 @@ public:
 	}
 };
 
+class FakeVertexFourPropertiesPrint2 : public QCIVertex<std::string, double, int, float> {
+public:
+	FakeVertexFourPropertiesPrint2() : QCIVertex() {
+		propertyNames[0] = "prop1";
+		propertyNames[1] = "prop2";
+	}
+};
+
+class FakeVertexWithVector : public QCIVertex<std::vector<int>> {
+public:
+	FakeVertexWithVector() : QCIVertex() {
+		propertyNames[0] = "prop1";
+	}
+};
 BOOST_AUTO_TEST_CASE(checkConstruction) {
 
 	// Check our valid vertex functions...
@@ -169,11 +183,14 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 
 	std::string expected =
 			"graph G {\n"
-			"0 [bias=1];\n"
-			"1 [bias=2];\n"
-			"2 [bias=3];\n"
-			"3 [bias=4];\n"
-			"4 [bias=5];\n"
+			"{\n"
+			"node [shape=box style=filled]\n"
+			"0 [label=\"bias=1\"];\n"
+			"1 [label=\"bias=2\"];\n"
+			"2 [label=\"bias=3\"];\n"
+			"3 [label=\"bias=4\"];\n"
+			"4 [label=\"bias=5\"];\n"
+			"}\n"
 			"0--1 ;\n"
 			"0--2 ;\n"
 			"0--3 ;\n"
@@ -184,7 +201,7 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 			"2--3 ;\n"
 			"2--4 ;\n"
 			"3--4 ;\n"
-			"}\n";
+			"}";
 	complete5.setVertexProperty<0>(0, 1.0);
 	complete5.setVertexProperty<0>(1, 2.0);
 	complete5.setVertexProperty<0>(2, 3.0);
@@ -210,11 +227,14 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 
 	expected =
 				"graph G {\n"
-				"0 [prop1=val1,prop2=1,prop3=1,prop4=1];\n"
-				"1 [prop1=val2,prop2=2,prop3=2,prop4=2];\n"
-				"2 [prop1=val3,prop2=3,prop3=3,prop4=3];\n"
-				"3 [prop1=val4,prop2=4,prop3=4,prop4=4];\n"
-				"4 [prop1=val5,prop2=5,prop3=5,prop4=5];\n"
+				"{\n"
+				"node [shape=box style=filled]\n"
+				"0 [label=\"prop1=val1,prop2=1,prop3=1,prop4=1\"];\n"
+				"1 [label=\"prop1=val2,prop2=2,prop3=2,prop4=2\"];\n"
+				"2 [label=\"prop1=val3,prop2=3,prop3=3,prop4=3\"];\n"
+				"3 [label=\"prop1=val4,prop2=4,prop3=4,prop4=4\"];\n"
+				"4 [label=\"prop1=val5,prop2=5,prop3=5,prop4=5\"];\n"
+				"}\n"
 				"0--1 ;\n"
 				"0--2 ;\n"
 				"0--3 ;\n"
@@ -225,7 +245,7 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 				"2--3 ;\n"
 				"2--4 ;\n"
 				"3--4 ;\n"
-				"}\n";
+				"}";
 	complete5_4props.setVertexProperty<0>(0, "val1");
 	complete5_4props.setVertexProperty<0>(1, "val2");
 	complete5_4props.setVertexProperty<0>(2, "val3");
@@ -264,4 +284,70 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 	std::stringstream ss2;
 	complete5_4props.write(ss2);
 	BOOST_VERIFY(ss2.str() == expected);
+
+
+	// Create a 3 node graph
+	Graph<FakeVertexFourPropertiesPrint2> graph(3);
+
+	// Create a complete graph with
+	// the given edge weights.
+	graph.addEdge(0, 1, 2.0);
+	graph.addEdge(1, 2, 3.0);
+	graph.addEdge(2, 0, 1.0);
+
+	graph.setVertexProperty<0>(0, "val1");
+	graph.setVertexProperty<0>(1, "val2");
+	graph.setVertexProperty<0>(2, "val3");
+
+	graph.setVertexProperty<1>(0, 1.0);
+	graph.setVertexProperty<1>(1, 2.0);
+	graph.setVertexProperty<1>(2, 3.0);
+
+	expected = "graph G {\n"
+			"{\n"
+			"node [shape=box style=filled]\n"
+			"0 [label=\"prop1=val1,prop2=1\"];\n"
+			"1 [label=\"prop1=val2,prop2=2\"];\n"
+			"2 [label=\"prop1=val3,prop2=3\"];\n"
+			"}\n"
+			"0--1 ;\n"
+			"1--2 ;\n"
+			"2--0 ;\n"
+			"}";
+
+	std::stringstream ss3;
+	graph.write(ss3);
+	BOOST_VERIFY(ss3.str() == expected);
+
+	// Create a 3 node graph
+	Graph<FakeVertexWithVector> graph2(3);
+
+	// Create a complete graph with
+	// the given edge weights.
+	graph2.addEdge(0, 1, 2.0);
+	graph2.addEdge(1, 2, 3.0);
+	graph2.addEdge(2, 0, 1.0);
+
+	std::vector<int> hello {1,2};
+	graph2.setVertexProperty<0>(0, std::vector<int>{1,2});
+	graph2.setVertexProperty<0>(1, std::vector<int>{1,2});
+	graph2.setVertexProperty<0>(2, std::vector<int>{1,2});
+
+
+	expected = "graph G {\n"
+			"{\n"
+			"node [shape=box style=filled]\n"
+			"0 [label=\"prop1=[1 2]\"];\n"
+			"1 [label=\"prop1=[1 2]\"];\n"
+			"2 [label=\"prop1=[1 2]\"];\n"
+			"}\n"
+			"0--1 ;\n"
+			"1--2 ;\n"
+			"2--0 ;\n"
+			"}";
+
+	std::stringstream ss4;
+	graph2.write(ss4);
+	BOOST_VERIFY(ss4.str() == expected);
+
 }
