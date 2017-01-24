@@ -36,6 +36,8 @@
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/eccentricity.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/algorithm/string.hpp>
 #include "QCIError.hpp"
 
 using namespace boost;
@@ -63,6 +65,11 @@ template<typename ... Properties>
 class QCIVertex {
 public:
 	std::tuple<Properties...> properties;
+	std::vector<std::string> propertyNames;
+	QCIVertex() : propertyNames(sizeof...(Properties)) {}
+	std::string getPropertyName(const int index) {
+		return propertyNames[index];
+	}
 };
 
 /**
@@ -75,6 +82,26 @@ struct DefaultEdge {
 enum GraphType {
 	Undirected, Directed
 };
+
+template<std::size_t> struct int_{};
+
+template <class Tuple, size_t Pos>
+std::ostream& print_tuple(std::ostream& out, const Tuple& t, int_<Pos> ) {
+  out << std::get< std::tuple_size<Tuple>::value-Pos >(t) << ',';
+  return print_tuple(out, t, int_<Pos-1>());
+}
+
+template <class Tuple>
+std::ostream& print_tuple(std::ostream& out, const Tuple& t, int_<1> ) {
+  return out << std::get<std::tuple_size<Tuple>::value-1>(t);
+}
+
+template <class... Args>
+std::ostream& operator<<(std::ostream& out, const std::tuple<Args...>& t) {
+  out << std::string(" [");
+  print_tuple(out, t, int_<sizeof...(Args)>());
+  return out << ']';
+}
 
 /**
  * The Graph class provides a generic data structure modeling
@@ -103,6 +130,48 @@ class Graph {
 	using edge_type = typename boost::graph_traits<adjacency_list<vecS, vecS, undirectedS, Vertex, DefaultEdge>>::edge_descriptor;
 
 protected:
+
+	/**
+	 * This is a custom utility class for writing
+	 * QCIVertices with user-defined properties.
+	 */
+	class QCIVertexPropertiesWriter {
+	protected:
+		adj_list graph;
+	public:
+		QCIVertexPropertiesWriter(adj_list& list) :
+				graph(list) {
+		}
+		template<class BoostVertex>
+		void operator()(std::ostream& out, const BoostVertex& v) const {
+			auto node = vertex(v, graph);
+			std::stringstream ss;
+			ss << graph[node].properties;
+
+			// Now we have a string of comma separated parameters
+			std::string result;
+			auto vertexString = ss.str();
+			boost::trim(vertexString);
+			std::vector<std::string> splitVec;
+			boost::split(splitVec, vertexString, boost::is_any_of(","));
+
+			int counter = 0;
+			for (std::size_t i = 0; i < splitVec.size(); i++) {
+				auto s = splitVec[i];
+				if (i == 0) {
+					s.insert(1,graph[node].propertyNames[counter]+"=");
+				} else {
+					s.insert(0, graph[node].propertyNames[counter]+"=");
+				}
+				counter++;
+				result += s + ",";
+			}
+
+			result = result.substr(0,result.size() - 1);
+
+			out << " " << result;
+		}
+	};
 
 	/**
 	 * The actual graph data structure we are
@@ -317,6 +386,17 @@ public:
 	 */
 	int order() {
 		return num_vertices(*_graph.get());
+	}
+
+	/**
+	 * Write this graph in a graphviz dot format to the
+	 * provided ostream.
+	 *
+	 * @param stream
+	 */
+	void write(std::ostream& stream) {
+		QCIVertexPropertiesWriter writer(*_graph.get());
+		boost::write_graphviz(stream, *_graph.get(), writer);
 	}
 };
 

@@ -45,6 +45,20 @@ class FakeTensorVertex : public QCIVertex<std::string> {
 };
 
 class FakeBiasVertex : public QCIVertex<double> {
+public:
+	FakeBiasVertex() : QCIVertex() {
+		propertyNames[0] = "bias";
+	}
+};
+
+class FakeVertexFourProperties : public QCIVertex<std::string, double, int, float> {
+public:
+	FakeVertexFourProperties() : QCIVertex() {
+		propertyNames[0] = "prop1";
+		propertyNames[1] = "prop2";
+		propertyNames[2] = "prop3";
+		propertyNames[3] = "prop4";
+	}
 };
 
 BOOST_AUTO_TEST_CASE(checkConstruction) {
@@ -148,4 +162,106 @@ BOOST_AUTO_TEST_CASE(checkDiameter) {
 	complete5.addEdge(2, 4);
 	complete5.addEdge(3, 4);
 	BOOST_REQUIRE_EQUAL(1, complete5.diameter());
+}
+
+BOOST_AUTO_TEST_CASE(checkWrite) {
+	Graph<FakeBiasVertex> complete5(5);
+
+	std::string expected =
+			"graph G {\n"
+			"0 [bias=1];\n"
+			"1 [bias=2];\n"
+			"2 [bias=3];\n"
+			"3 [bias=4];\n"
+			"4 [bias=5];\n"
+			"0--1 ;\n"
+			"0--2 ;\n"
+			"0--3 ;\n"
+			"0--4 ;\n"
+			"1--2 ;\n"
+			"1--3 ;\n"
+			"1--4 ;\n"
+			"2--3 ;\n"
+			"2--4 ;\n"
+			"3--4 ;\n"
+			"}\n";
+	complete5.setVertexProperty<0>(0, 1.0);
+	complete5.setVertexProperty<0>(1, 2.0);
+	complete5.setVertexProperty<0>(2, 3.0);
+	complete5.setVertexProperty<0>(3, 4.0);
+	complete5.setVertexProperty<0>(4, 5.0);
+
+	complete5.addEdge(0, 1);
+	complete5.addEdge(0, 2);
+	complete5.addEdge(0, 3);
+	complete5.addEdge(0, 4);
+	complete5.addEdge(1, 2);
+	complete5.addEdge(1, 3);
+	complete5.addEdge(1, 4);
+	complete5.addEdge(2, 3);
+	complete5.addEdge(2, 4);
+	complete5.addEdge(3, 4);
+
+	std::stringstream ss;
+	complete5.write(ss);
+	BOOST_VERIFY(ss.str() == expected);
+
+	Graph<FakeVertexFourProperties> complete5_4props(5);
+
+	expected =
+				"graph G {\n"
+				"0 [prop1=val1,prop2=1,prop3=1,prop4=1];\n"
+				"1 [prop1=val2,prop2=2,prop3=2,prop4=2];\n"
+				"2 [prop1=val3,prop2=3,prop3=3,prop4=3];\n"
+				"3 [prop1=val4,prop2=4,prop3=4,prop4=4];\n"
+				"4 [prop1=val5,prop2=5,prop3=5,prop4=5];\n"
+				"0--1 ;\n"
+				"0--2 ;\n"
+				"0--3 ;\n"
+				"0--4 ;\n"
+				"1--2 ;\n"
+				"1--3 ;\n"
+				"1--4 ;\n"
+				"2--3 ;\n"
+				"2--4 ;\n"
+				"3--4 ;\n"
+				"}\n";
+	complete5_4props.setVertexProperty<0>(0, "val1");
+	complete5_4props.setVertexProperty<0>(1, "val2");
+	complete5_4props.setVertexProperty<0>(2, "val3");
+	complete5_4props.setVertexProperty<0>(3, "val4");
+	complete5_4props.setVertexProperty<0>(4, "val5");
+
+	complete5_4props.setVertexProperty<1>(0, 1.0);
+	complete5_4props.setVertexProperty<1>(1, 2.0);
+	complete5_4props.setVertexProperty<1>(2, 3.0);
+	complete5_4props.setVertexProperty<1>(3, 4.0);
+	complete5_4props.setVertexProperty<1>(4, 5.0);
+
+	complete5_4props.setVertexProperty<2>(0, 1);
+	complete5_4props.setVertexProperty<2>(1, 2);
+	complete5_4props.setVertexProperty<2>(2, 3);
+	complete5_4props.setVertexProperty<2>(3, 4);
+	complete5_4props.setVertexProperty<2>(4, 5);
+
+	complete5_4props.setVertexProperty<3>(0, 1.0);
+	complete5_4props.setVertexProperty<3>(1, 2.0);
+	complete5_4props.setVertexProperty<3>(2, 3.0);
+	complete5_4props.setVertexProperty<3>(3, 4.0);
+	complete5_4props.setVertexProperty<3>(4, 5.0);
+
+	complete5_4props.addEdge(0, 1);
+	complete5_4props.addEdge(0, 2);
+	complete5_4props.addEdge(0, 3);
+	complete5_4props.addEdge(0, 4);
+	complete5_4props.addEdge(1, 2);
+	complete5_4props.addEdge(1, 3);
+	complete5_4props.addEdge(1, 4);
+	complete5_4props.addEdge(2, 3);
+	complete5_4props.addEdge(2, 4);
+	complete5_4props.addEdge(3, 4);
+
+	std::stringstream ss2;
+	complete5_4props.write(ss2);
+	BOOST_VERIFY(ss2.str() == expected);
 }
