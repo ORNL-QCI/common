@@ -293,6 +293,10 @@ public:
 		return;
 	}
 
+	auto getVertexProperties(const int index) -> decltype((*_graph.get())[index].properties) {
+		return (*_graph.get())[index].properties;
+	}
+
 	/**
 	 * Return the vertex property of the vertex
 	 * at the given index and at the provided

@@ -351,3 +351,16 @@ BOOST_AUTO_TEST_CASE(checkWrite) {
 	BOOST_VERIFY(ss4.str() == expected);
 
 }
+
+BOOST_AUTO_TEST_CASE(checkDirectedGraph) {
+	// Create a 3 node graph
+	Graph<FakeVertexWithVector> graph2(3);
+
+	// Create a complete graph with
+	// the given edge weights.
+	graph2.addEdge(0, 1, 2.0);
+	graph2.addEdge(1, 2, 3.0);
+	graph2.addEdge(2, 0, 1.0);
+
+	std::cout << graph2.degree(0) << "\n";
+}
