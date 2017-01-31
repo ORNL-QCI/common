@@ -38,8 +38,10 @@
 #include <boost/graph/eccentricity.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <numeric>
 #include "QCIError.hpp"
+#include <utility>
 
 using namespace boost;
 
@@ -429,6 +431,49 @@ public:
 		std::stringstream combine;
 		std::for_each(splitVec.begin(), splitVec.end(), [&](const std::string& elem) { combine << elem << "\n"; });
 		stream << combine.str().substr(0, combine.str().size() - 2);
+	}
+
+	/**
+	 *
+	 * @param stream
+	 */
+	void read(std::istream& stream) {
+
+		std::string content { std::istreambuf_iterator<char>(stream),
+				std::istreambuf_iterator<char>() };
+
+		std::vector<std::string> lines, sections;
+		boost::split(sections, content, boost::is_any_of("}"));
+
+		// Sections should be size 2 for a valid dot file
+		boost::split(lines, sections[0], boost::is_any_of("\n"));
+		for (auto line : lines) {
+			if (boost::contains(line, "label")) {
+				Vertex v;
+				std::vector<std::string> labelLineSplit, attrSplit;
+				boost::split(labelLineSplit, line, boost::is_any_of("="));
+				auto attributes = labelLineSplit[1].substr(1, labelLineSplit.size()-3);
+				boost::split(attrSplit, attributes, boost::is_any_of(","));
+
+				decltype(declval<Vertex>().properties) tuple;
+
+				std::map<std::string, std::string> attrMap;
+				for (auto a : attrSplit) {
+//					std::vector<std::string> eqsplit;
+//					boost::split(eqsplit, a, boost::is_any_of("="));
+//					if (std::count_if(eqsplit[1].begin(), eqsplit[1].end(), ::isdigit) == eqsplit[1].size()) {
+//
+//					} else if (boost::contains(eqsplit[1], "[")) {
+//						// then this is a vector
+//						auto elementsStr = eqsplit[1].substr(1,eqsplit[1].size()-1);
+////						std::vector<int> elements
+//					}
+//
+//					attrMap.insert(std::make_pair(eqsplit[0], eqsplit[1]));
+				}
+
+			}
+		}
 	}
 };
 

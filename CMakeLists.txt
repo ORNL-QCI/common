@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_DISABLE_IN_SOURCE_BUILDS ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 message(STATUS "C++ version ${CXX_STANDARD} configured.")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-long-long -pedantic -Wno-unused-function")
