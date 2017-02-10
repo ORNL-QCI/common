@@ -440,7 +440,8 @@ public:
 	 * @param stream
 	 */
 	virtual void read(std::istream& stream) {
-		QCIError("Read must be implemented by subclasses.");
+		stream.fail();
+		QCIError("Reading must be implemented by subclasses.");
 	}
 };
 
