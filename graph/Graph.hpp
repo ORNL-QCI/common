@@ -295,6 +295,11 @@ public:
 		return;
 	}
 
+	Vertex& getVertex(const int index) {
+		auto v = vertex(index, *_graph.get());
+		return (*_graph.get())[v];
+	}
+
 	auto getVertexProperties(const int index) -> decltype((*_graph.get())[index].properties) {
 		return (*_graph.get())[index].properties;
 	}
